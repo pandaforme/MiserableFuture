@@ -1,7 +1,12 @@
 autoscale : true
 build-lists : true
 
+# Miserable Future
+
+---
+
 # Jave 7
+
 ```java
   ExecutorService executorService = Executors.newSingleThreadExecutor();
 
@@ -51,9 +56,9 @@ build-lists : true
 # What is Future ?
 A Future is an object holding a value which may become available at some point.
 
-* When a Future is completed with a value.
+* When a Future is completed with a **_value_**.
 <br>
-* When a Future is completed with an exception thrown by the computation.
+* When a Future is completed with an **_exception_** thrown by the computation.
 
 ---
 
@@ -110,9 +115,9 @@ trait Future[+T] {
 
 - Callback methods are called asynchronously when a future completes.
 <br>
-- The order in which callbacks are executed is **not guaranteed**, the callback is executed eventually.
+- The order in which callbacks are executed is **_not guaranteed_**, the callback is executed eventually.
 <br>
-- `onComplete`, `onSuccess`, and `onFailure` have the result type `Unit`, so they can't be chained((callbacks registered on the **same** future are **unordered**)).
+- `onComplete`, `onSuccess`, and `onFailure` have the result type `Unit`, so they can't be chained(callbacks registered on the **_same_** future are **_unordered_**).
 
 ---
 
@@ -144,25 +149,33 @@ trait Future[+T] {
 
 ---
 
+# Java Exception Hierarchy
+
+![inline](http://1.bp.blogspot.com/-4lDj9MWX49c/UWRo2vEgJcI/AAAAAAAAASk/BFTv8UMvfFQ/s1600/exception-hierarchy-in-java.png)
+
+---
+
 # Exceptions
 
 - `scala.runtime.NonLocalReturnControl[_]`
-Returning from a nested **anonymous** function is implemented by throwing and catching a `scala.runtime.NonLocalReturnException`.
+Returning from a **_nested anonymous_** function
 
 - `ExecutionException`
-when the computation fails due to an unhandled `InterruptedException`, `Error` or a `scala.util.control.ControlThrowable`.
+ - `InterruptedException`
+ - `Error`
+ - `scala.util.control.ControlThrowable`.
 
-- Fatal exceptions (as determined by `NonFatal`) 
-are rethrown in the thread executing the failed asynchronous computation. This informs the code managing the executing threads of the problem and allows it to fail fast, if necessary.
+Fatal exceptions (as determined by `NonFatal`) 
+This informs the code managing the executing threads of the problem and allows it to fail fast, if necessary.
 
 ---
 
 # Execution Context 1/ 2
-An `ExecutionContext` is similar to an [Executor](http://docs.oracle.com/javase/7/docs/api/java/util/concurrent/Executor.html): it is free to execute computations in a new thread, in a pooled thread or in the current thread 
+An `ExecutionContext` is similar to an [Executor](http://docs.oracle.com/javase/9/docs/api/java/util/concurrent/Executor.html): it is free to execute computations in a new thread, in a pooled thread or in the current thread 
 
 `ExecutionContext.global` is an ExecutionContext backed by a [ForkJoinPool](http://docs.oracle.com/javase/tutorial/essential/concurrency/forkjoin.html).
 
-By default the `ExecutionContext.global` sets the parallelism level of its underlying fork-join pool to the amount of available processors.
+By default the `ExecutionContext.global` sets the parallelism level of its underlying fork-join pool to _**the amount of available processors**_.
 - `scala.concurrent.context.minThreads`
 - `scala.concurrent.context.numThreads`
 - `scala.concurrent.context.maxThreads` 
@@ -186,13 +199,13 @@ By default the `ExecutionContext.global` sets the parallelism level of its under
 # Thread pools 1/2
 
 - `FixedThreadPool`
-n threads will process tasks at the time, when the pool is saturated, new tasks will get added to a queue without a limit on size.
+n threads will process tasks at the time, when the pool is saturated, new tasks will get added to _**a queue**_ without a limit on size.
 
 - `CachedThreadPool`
-doesn't put tasks into a queue. When all current threads are busy, it creates another thread to run the task.
+_**not**_ put tasks into a queue. When all current threads are busy, it creates another thread to run the task.
 
 - `ForkJoinPool`
-uses a **work-stealing** algorithm. Worker threads that run out of things to do can steal tasks from other threads that are still busy.
+uses a **_work-stealing_** algorithm. Worker threads that run out of things to do can steal tasks from other threads that are still busy.
 
 ---
 
@@ -221,7 +234,7 @@ Task 2: B(10 sec) {b1(6 sec), b2(4 sec)}
 
 # Promise 1/3
 
-As a **writable**, **single-assignment container**, which completes a future. That is you can finish a future manually.
+As a **_writable_**, **_single-assignment container_**, which completes a future. That is you can finish a future _**manually**_.
 
 The Promise and Future are complementary concepts.  
 
@@ -278,7 +291,7 @@ def httpClient = {
 ---
 
 # Can I put any code blocks into Future? 1/3
-This is in general an **anti-pattern**:
+This is in general an **_anti-pattern_**:
 
 `def add(x: Int, y: Int) = Future { x + y }`
 
@@ -345,6 +358,7 @@ Parameters(size -> 15000): 1.85345
 # What is `blocking` ? 1/4
 
 Blocking calls have to be marked with a `blocking` call that signals to the `BlockContext` a blocking operation. 
+<br>
 Lets the ExecutionContext know that a blocking operation happens, such that the ExecutionContext can decide what to do about it, such as adding more threads to the thread-pool (which is what Scala's ForkJoin thread-pool does).
 
 ---
@@ -450,21 +464,17 @@ object Block extends App {
 
 # Should use a separate thread-pool for blocking I/O ?
 
-**Yes**, it's better to create a second thread-pool / execution context and execute all blocking calls on that, leaving the application's thread-pool to deal with CPU-bound stuff.
+**_Yes_**, it's better to create a second thread-pool / execution context and execute all blocking calls on that, leaving the application's thread-pool to deal with CPU-bound stuff.
 
 In a blocking environment, `thread-pool-executor` is better than `fork-join` because no work-stealing is possible, and a `fixed-pool-size` size should be used and set to the maximum size of the underlying resource.
 
 ---
   
-# How do I execute a bunch of Future concurrently 1/2? 
+# How do I execute a bunch of Future concurrently 1/3? 
 
-`Future` is a eager evaluation.
+`Future` is a **_eager_** evaluation.
 
-```tut:book
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent._
-import scala.concurrent.duration._
-
+```scala
 val fa = Future{
   Thread.sleep(1)
   "a"
@@ -483,9 +493,14 @@ val r = for {
 }
 
 Await.result(r, 2 second) 
+```
 
+---
 
-val r1 = for {
+# How do I execute a bunch of Future concurrently 2/3? 
+
+```scala
+val r = for {
   a <- Future{
          Thread.sleep(1)
          "a"
@@ -499,7 +514,6 @@ val r1 = for {
 }
 
 Await.result(r, 3 second)
-
 ```
 
 ---
@@ -532,10 +546,17 @@ object Stock {
 
 # Future is so intricate, do we have another choice?
 
-**Yes !!!**
+**_Yes !!!_**
 
 - [Monix](https://github.com/monix/monix)
 - [cats-effect](https://github.com/typelevel/cats-effect)
+- [Scalaz](https://github.com/scalaz/scalaz)
+
+---
+
+# What about Twitter Future?
+
+It is your turn !
 
 ---
 
