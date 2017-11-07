@@ -88,6 +88,8 @@ trait Future[+T] {
   import scala.concurrent.ExecutionContext.Implicits.global
   import scala.concurrent.Future
   import scala.util.{Failure, Success}
+  import scala.concurrent.duration._
+  import scala.concurrent.{Await, Future}
 
   val futureOne = Future {
     Thread.sleep(1000)
@@ -107,6 +109,8 @@ trait Future[+T] {
       }
     case Failure(f2) => println(s"error, $f2")
   }
+  
+  Await.result(futureTwo, 5 second)
 ```
 
 ---
@@ -121,7 +125,7 @@ trait Future[+T] {
 
 ---
 
-# Functional Composition and For-Comprehensions
+# Functional Composition
 ```tut:book
   import scala.concurrent.ExecutionContext.Implicits.global
   import scala.concurrent.duration._
@@ -355,7 +359,7 @@ Parameters(size -> 15000): 1.85345
 
 ---
 
-# What is `blocking` ? 1/4
+# What is `blocking` ? 1/5
 
 Blocking calls have to be marked with a `blocking` call that signals to the `BlockContext` a blocking operation. 
 <br>
@@ -363,7 +367,19 @@ Lets the ExecutionContext know that a blocking operation happens, such that the 
 
 ---
 
-# What is `blocking` ? 2/4
+# What is `blocking` ? 2/5
+
+- synchronous and blocking IO
+
+- synchronous and non-blocking IO
+
+- asynchronous and non-blocking IO
+
+![inline](https://www.java-success.com/wp-content/uploads/2014/10/io-vs-nio-mult0-threading.jpg)
+ 
+---
+
+# What is `blocking` ? 3/5
 
 ```scala
 object Sentinel extends Runnable {
@@ -394,7 +410,7 @@ object NonBlock extends App {
 
 ---
 
-# What is `blocking` ? 3/4
+# What is `blocking` ? 4/5
 
 ```scala
 object Sentinel extends Runnable {
@@ -427,7 +443,7 @@ object Block extends App {
 
 ---
 
-# What is `blocking` ? 4/4
+# What is `blocking` ? 5/5
 
 ```scala
 object Sentinel extends Runnable {
@@ -556,7 +572,7 @@ object Stock {
 
 # What about Twitter Future?
 
-It is your turn !
+**It is your turn !!!**
 
 ---
 
